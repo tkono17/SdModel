@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 import logging
-import sdmodel as sdm
+import sdrep
 
 logger = logging.getLogger(__name__)
 
 def main(args):
-    reader = sdm.ModelReader()
+    reader = sdrep.ModelReader()
     reader.read('ex1.yaml')
     model = reader.getModel()
-    model.saveJson('ex1.json')
+    reader.saveJson('ex1.json')
 
 if __name__ == '__main__':
     args = {}

@@ -1,0 +1,16 @@
+{
+  "name": "Pixel",
+  "T": [
+    0.0,
+    0.0
+  ],
+  "R": [
+    1.0,
+    0.0,
+    0.0,
+    1.0
+  ],
+  "barrel": null,
+  "endcapA": null,
+  "endcapC": null
+}

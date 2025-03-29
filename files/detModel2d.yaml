@@ -1,0 +1,46 @@
+header:
+  name: detModel2d
+  version: 1.0.0
+  author: Takanori Kono
+
+contents:
+  - pixel{PixelDetector}
+  - strip{StripDetector}
+
+components:
+  - PixelDetector{cgeom::GeomObject}:
+    - barrel{PixelBarrel}
+    - endcapA{PixelEndcap}
+    - endcapC{PixelEndcap}
+  - PixelBarrel{cgeom::GeomObject}:
+    - layers{PixelLayer[]}
+  - PixelLayer{cgeom::GeomObject}:
+    - staves{PixelStave[]}
+  - PixelStave{cgeom::GeomObject}:
+    - modules{PixelModule[]}
+  - PixelEndap{cgeom::GeomObject}:
+    - rings{PixelRing[]}
+  - PixelRing{cgeom::GeomObject}:
+    - modules{PixelModules[]}
+  - PixelModule{cgeom::Square}: null
+  
+styles:
+  - cgeom::GeomObject:
+    T: [ 0.0, 0.0 ]
+    R: [ 1.0, 0.0, 0.0, 1.0 ]
+  - PixelModule:
+    moduleNumber: 0
+    width: 500
+    thickness: 200
+  - PixelStave:
+    staveNumber: 0
+  - PixelLayer:
+    layerNumber: 0
+  - PixelBarrel: null
+  - PixelRing:
+    ringNumber: 0
+  - PixelDisk:
+    diskNumber: 0
+  - PixelEndcap:
+    endcapSide: ''
+

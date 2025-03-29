@@ -3,14 +3,14 @@
 # sdmodel.builder
 #------------------------------------------------------------------------
 import logging
-from .model import Page, Metadata, Component, Element
+from .model import Model, Header, Component, Element
 
 logger = logging.getLogger(__name__)
 
 C = Component
 E = Element
 
-class PageBuilder(Page):
+class ModelBuilder(Model):
     def __init__(self):
         super().__init__()
 
