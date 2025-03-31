@@ -1,7 +1,7 @@
 header:
   name: detModel2d
   version: 1.0.0
-  author: Takanori Kono
+  authors: [ Takanori Kono ]
 
 contents:
   - pixel{PixelDetector}
@@ -22,25 +22,25 @@ components:
     - rings{PixelRing[]}
   - PixelRing{cgeom::GeomObject}:
     - modules{PixelModules[]}
-  - PixelModule{cgeom::Square}: null
+  - PixelModule{cgeom::Square}
   
 styles:
-  - cgeom::GeomObject:
+  cgeom::GeomObject:
     T: [ 0.0, 0.0 ]
     R: [ 1.0, 0.0, 0.0, 1.0 ]
-  - PixelModule:
+  PixelModule:
     moduleNumber: 0
     width: 500
     thickness: 200
-  - PixelStave:
+  PixelStave:
     staveNumber: 0
-  - PixelLayer:
+  PixelLayer:
     layerNumber: 0
-  - PixelBarrel: null
-  - PixelRing:
+  PixelBarrel: {}
+  PixelRing:
     ringNumber: 0
-  - PixelDisk:
+  PixelDisk:
     diskNumber: 0
-  - PixelEndcap:
+  PixelEndcap:
     endcapSide: ''
 

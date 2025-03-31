@@ -30,7 +30,6 @@ class ModelReader:
                     logger.warning(f'JSON file is not supported {fpath}')
                 case '.yaml' | '.yml':
                     self.loadYaml(fpath)
-                    if self.data: self.toModel(self.data)
                 case '.xml':
                     pass
                 case _:
@@ -42,27 +41,28 @@ class ModelReader:
         if fpath.is_file() and fpath.exists():
             with open(fpath.absolute(), 'r') as fin:
                 self.data = yaml.load(fin, Loader=yaml.SafeLoader)
-        return self.data
+        if self.data: self.toModel(self.data)
+        return self.model
 
     def getModel(self):
         return self.model
 
     def convElement(self, cdata, parent=None):
-        logger.info(f'convElement top {cdata}')
-        comp = None
+        e1 = None
         if type(cdata) == type({}):
+            logger.info(f'  element is a map with {len(cdata)} items')
             if len(cdata) == 1:
                 for k1, v1 in cdata.items():
-                    logger.info(f'Convert component {k1}')
-                    comp = self.convElementM(k1, v1, parent)
-                    break
+                    logger.info(f'    Create element {k1} ({len(v1)} sub elements)')
+                    e1 = self.createElement(k1, parent)
+                    self.convSubElements(v1, e1)
             else:
                 logger.error(f'component as a map with more than one entries')
         elif type(cdata) == type(''):
             k1 = cdata
-            logger.info(f'Convert component scalar {k1}')
-            comp = self.convElementS(k1, parent)
-        return comp
+            logger.info(f'  Create an element with no children')
+            e1 = self.createElement(k1, parent)
+        return e1
 
     def decodeKey(self, k):
         re1 = re.compile(r'(.*){(.*)}')
@@ -72,36 +72,72 @@ class ModelReader:
             name, ctype = mg1.groups()
         return (name, ctype)
     
-    def convElementS(self, k, parent):
-        component = None
-        name, ctype = self.decodeKey(k)
+    def createElement(self, k, parent):
+        element = None
+        name, cType = self.decodeKey(k)
         if name == '':
-            logger.error(f'Cannot parse component information from "{k}"')
+            logger.error(f'Cannot parse element information from "{k}"')
             return None
+        parentName = ''
         if parent:
-            component = Element(name=name, componentType=ctype, parent=parent)
-        return component
+            parentName = parent.fullName()
+        element = Element(name=name, componentType=cType, parentName=parentName)
+        logger.info(f'create element {name}')
+        if parent:
+            parent.addSubElement(element)
+        return element
     
-    def convElementM(self, k, v, parent):
-        component = self.convElementS(k, parent)
-        #
-        if component != None:
-            for sub in v:
-                csub = self.convElement(sub, component)
-                if csub != None:
-                    component.addSubElement(csub)
-        return component
-
+    def convSubElements(self, v, parent):
+        for sub in v:
+            csub = self.convElement(sub, parent)
+        return parent
+    
+    def convElements(self, section):
+        elements = None
+        if type(section) != type([]):
+            logger.error(f'contents section should be a list of elements')
+        else:
+            elements = []
+            for e in section:
+                elements.append(self.convElement(e) )
+        logger.info(f'Found {len(elements)} top-element(s)')
+        return elements
+        
     def setHeader(self, header, section):
         for k, v in section.items():
             match k:
                 case 'name': header.name = v
-                case 'version': header.name = v
+                case 'version': header.version = v
                 case 'authors': header.authors = list(v)
                 case 'context': header.context = v
                 case _: logger.warning(f'Unknown key in header {k}')
         pass
-    
+
+    def convComponents(self, section):
+        # This section should be a list of components
+        if section is None:
+            return []
+        components = {}
+        for cdata in section:
+            tname = type(cdata).__name__
+            subElements = None
+            match tname:
+                case 'dict':
+                    key = list(cdata.keys())[0]
+                    logger.info(f'Component as a dictionary found {key}')
+                    subElements = cdata[key]
+                case 'str':
+                    key = cdata
+                    logger.info(f'Component as a string found {key}')
+                case _:
+                    logger.error(f'Component should be a dictionary')
+            name, baseType = self.decodeKey(key)
+            c = Component(name, baseType)
+            if subElements:
+                self.convSubElements(subElements, c)
+            components[name] = c
+        return components
+
     def toModel(self, data):
         self.model = Model()
         if data is None:
@@ -112,30 +148,13 @@ class ModelReader:
             match key:
                 case 'header':
                     self.setHeader(self.model.header, section)
-                case 'model':
-                    parent = 1
-                    e = self.convElement(data[key])
-                    if e: e.parent = None
-                    self.model.rootElement = e
+                case 'contents':
+                    self.model.contents = self.convElements(section)
                 case 'components':
-                    components = []
-                    if section is None: continue
-                    for cdata in section:
-                        tdata = type(cdata)
-                        match tdata:
-                            case type({}): key = cdata.keys()[0]
-                            case _:
-                                logger.error(f'Component should be a dictionary')
-                        name, ctype = self.decode(key)
-                        c = Component(name, ctype)
-                        c = self.convElement(cdata)
-                        components.append(c)
-                    names = map(lambda x: x.name, components)
-                    self.model.components.update({
-                        k: components[k] for k in names
-                    })
+                    self.model.components = self.convComponents(section)
                 case 'styles':
                     if section:
+                        print(section)
                         self.model.styles.update(copy.deepcopy(section) )
                 case _:
                     logger.warning(f'Unknown section {key}')
