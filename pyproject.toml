@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sdrep"
+authors = [
+  {name="Takanori", email="takanori.kono@gmail.com"}
+]
+version = "0.0.0"
+requires-python = ">=3.9"
+dependencies = [
+]
+
+[project.scripts]
+#prog = "sdrep.cli.prog:main"
